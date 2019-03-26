@@ -1,0 +1,49 @@
+<odoo>
+    <record id="view_dns_domain_form" model="ir.ui.view">
+        <field name="name">dns.domain.form</field>
+        <field name="model">dns.domain</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_connect" type="object"
+                            string="Connect" class="oe_highlight"
+                            states="draft,exception"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group colspan="4" col="4">
+                            <field name="name"/>
+                            <field name="backend_id"/>
+                            <field name="record_ids"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dns_domain_tree" model="ir.ui.view">
+        <field name="name">dns.domain.tree</field>
+        <field name="model">dns.domain</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dns_domain" model="ir.actions.act_window">
+        <field name="name">DNS Domains</field>
+        <field name="res_model">dns.domain</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_dns_domain_tree"/>
+    </record>
+
+    <menuitem id="menu_dns_domain"
+              name="DNS Domains"
+              action="dnspod.action_dns_domain"
+              parent="dns.menu_dns_backend"
+    />
+</odoo>

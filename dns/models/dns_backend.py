@@ -14,7 +14,7 @@ class DNSBackend(models.Model):
 
     login = fields.Char('Username or Email')
     password = fields.Char('Password')
-    uri = fields.Char('URI', help="URL to DNS Provider API")
+    api_path = fields.Char('API URL', help="URL to DNS Provider API")
     version = fields.Selection(_selection_version, string='Backend Version')
     company_id = fields.Many2one('res.company', string='Company')
     is_default = fields.Boolean('Is Default Backend')
