@@ -41,4 +41,19 @@ class DNSPodRecordImporter(Component):
         print('import done')
 
     def _send_request(self, signal):
-        print('hello world')
+        headers = {
+            "Content-type": "application/x-www-form-urlencoded",
+            "Accept": "text/json",
+            "User-Agent": "DNSPod-Odoo/0.01 (webmaster@my-odoo.com)"
+        }
+        api_path = self.backend_record.api_path
+        conn = httplib2.HTTPSConnectionWithTimeout(api_path)
+        conn.request('POST', '/Record.Create',
+                     urlencode(signal.get('params')), headers)
+        response = conn.getresponse()
+        data = response.read()
+        conn.close()
+        if response.status == 200:
+            return json.loads(data.decode('utf-8'))
+        else:
+            return None

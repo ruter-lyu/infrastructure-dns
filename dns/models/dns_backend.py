@@ -28,6 +28,12 @@ class DNSBackend(models.Model):
     import_date = fields.Datetime('Import Date')
     export_date = fields.Datetime('Export Date')
 
-    def sync(self, model, external_id):
+    @api.multi
+    def sync_domains(self, model, external_id):
+        self.ensure_one()
+        self.env[model].with_delay().sync_dns_domains(self, external_id)
+
+    @api.multi
+    def sync_records(self, model, external_id):
         self.ensure_one()
         self.env[model].with_delay().sync_dns_records(self, external_id)

@@ -24,7 +24,15 @@ class DNSBingingAbstract(models.AbstractModel):
     ]
 
     @job(default_channel='root')
-    def sync_dns_records(self, signal):
-        with self.backend_id.work_on(self._name) as work:
+    @api.model
+    def sync_dns_domains(self, backend_id, external_id=None, signal=None):
+        with backend_id.work_on(self._name) as work:
+            syncer = work.component(usage='dns.importer')
+            return syncer.run(external_id, signal)
+
+    @job(default_channel='root')
+    @api.model
+    def sync_dns_records(self, backend_id, signal):
+        with backend_id.work_on(self._name) as work:
             syncer = work.component(usage='dns.importer')
             return syncer.run(self.id, signal)

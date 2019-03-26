@@ -22,4 +22,5 @@ class DNSDomain(models.Model):
             else:
                 params.update(login_email=domain.backend_id.login,
                               login_password=domain.backend_id.password)
-            domain.sync_dns_records({'params': params})
+            domain.sync_dns_domains(domain.backend_id, domain.id,
+                                    {'params': params})
