@@ -1,4 +1,8 @@
+import logging
+
 from odoo.addons.component.core import AbstractComponent
+
+_logger = logging.getLogger(__name__)
 
 
 class DNSAbstractImporter(AbstractComponent):
@@ -45,6 +49,7 @@ class DNSAbstractImporter(AbstractComponent):
         try:
             self.dns_record = self._send_request(signal)
         except Exception:
+            _logger.error('Send request fail.', exc_info=True)
             return 'No response'
 
         binding = self._get_binding()

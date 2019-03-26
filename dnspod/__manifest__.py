@@ -6,6 +6,7 @@
         'dns',
     ],
     'data': [
+        'views/dns_backend_views.xml',
         'views/dnspod_domain_views.xml',
     ],
 }

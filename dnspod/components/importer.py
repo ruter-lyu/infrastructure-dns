@@ -16,14 +16,15 @@ class DNSPodDomainImporter(Component):
             "Accept": "text/json",
             "User-Agent": "DNSPod-Odoo/0.01 (webmaster@my-odoo.com)"
         }
-        conn = httplib2.HTTPSConnectionWithTimeout("dnsapi.cn")
+        api_path = self.backend_record.api_path
+        conn = httplib2.HTTPSConnectionWithTimeout(api_path)
         conn.request('POST', '/Domain.Create',
                      urlencode(signal.get('params')), headers)
         response = conn.getresponse()
         data = response.read()
         conn.close()
         if response.status == 200:
-            return json.loads(data)
+            return json.loads(data.decode('utf-8'))
         else:
             return None
 
