@@ -8,15 +8,28 @@
                     <button name="action_connect" type="object"
                             string="Connect" class="oe_highlight"
                             states="draft,exception"/>
+                    <button name="action_subdomains" type="object"
+                            string="Get Subdomains" class="oe_highlight"
+                            states="done"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
                     <group>
-                        <group colspan="4" col="4">
-                            <field name="name"/>
+                        <div class="oe_title">
+                            <label class="oe_edit_only" for="name" string="Domain"/>
+                            <h1>
+                                <field name="name" class="oe_inline"/>
+                            </h1>
+                        </div>
+                    </group>
+                    <group>
+                        <group>
                             <field name="backend_id"/>
-                            <field name="record_ids"/>
+                            <field name="external_id"/>
                         </group>
+                    </group>
+                    <group string="Subdomains">
+                        <field name="record_ids" nolabel="1"/>
                     </group>
                 </sheet>
             </form>

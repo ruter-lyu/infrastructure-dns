@@ -9,18 +9,11 @@ class DNSDomain(models.Model):
     @api.multi
     def action_connect(self):
         for domain in self:
-            params = {
-                'format': 'json',
-                'domain': domain.name
-            }
-            if domain.backend_id.token_id and domain.backend_id.login_token:
-                login_token = '{},{}'.format(
-                    domain.backend_id.token_id,
-                    domain.backend_id.login_token
-                )
-                params.update(login_token=login_token)
-            else:
-                params.update(login_email=domain.backend_id.login,
-                              login_password=domain.backend_id.password)
-            domain.sync_dns_domains(domain.backend_id, domain.id,
-                                    {'params': params})
+            domain.sync_dns_domains(domain.backend_id, domain, None,
+                                    domain.external_id)
+
+    @api.multi
+    def action_subdomains(self):
+        for domain in self:
+            self.env['dnspod.record'].sync_dns_records(domain.backend_id,
+                                                       domain)

@@ -25,11 +25,11 @@ class DNSRecord(models.Model):
         string='Domain',
         ondelete='cascade')
     type = fields.Selection(
-        selection='_type_select_version',
+        selection=_type_select_version,
         string='Record Type'
     )
     line = fields.Selection(
-        selection='_line_select_version',
+        selection=_line_select_version,
         string='Record Line'
     )
     value = fields.Text(
