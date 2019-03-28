@@ -35,6 +35,18 @@ class DNSPodRecord(models.Model):
                               string='DNS Record',
                               required=True,
                               ondelete='restrict')
+    type = fields.Selection(
+        selection=_type_select_version,
+        string='Record Type'
+    )
+    line = fields.Selection(
+        selection=_line_select_version,
+        string='Record Line'
+    )
+    backend_id = fields.Many2one(
+        comodel_name='dns.backend',
+        related='domain_id.backend_id'
+    )
 
 
 class DNSPodRecordAdapter(Component):
