@@ -61,7 +61,7 @@ class DNSAbstractImporter(AbstractComponent):
         self.external_id = external_id
         self.dns_record = self._get_records()
 
-        binding = self._get_binding()
+        binding = self._get_binding(signal)
         self._before_import()
         map_record = self._map_data()
         if binding:
