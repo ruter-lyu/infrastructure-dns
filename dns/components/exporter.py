@@ -1,3 +1,5 @@
+# © 2019 Elico Corp (https://www.elico-corp.com).
+# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html).
 from odoo.addons.component.core import AbstractComponent
 
 
@@ -16,9 +18,9 @@ class DNSAbstractExporter(AbstractComponent):
         self.external_id = self.binder.to_external(self.binding)
         self._before_export()
         if self.external_id:
-            self.backend_adapter.write(self.external_id)
+            self.backend_adapter.write(self.binding)
         else:
-            response = self.backend_adapter.create()
+            response = self.backend_adapter.create(self.binding)
             self.external_id = self._get_external_id(response)
         self.binder.bind(self.external_id, self.binding)
         self._after_export()

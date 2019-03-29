@@ -1,10 +1,7 @@
 # © 2019 Elico Corp (https://www.elico-corp.com).
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html).
-import httplib2
-import json
-from urllib.parse import urlencode
-
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 from odoo.addons.component.core import Component
 
 
@@ -34,7 +31,7 @@ class DNSPodRecord(models.Model):
     odoo_id = fields.Many2one(comodel_name='dns.record',
                               string='DNS Record',
                               required=True,
-                              ondelete='restrict')
+                              ondelete='cascade')
     type = fields.Selection(
         selection=_type_select_version,
         string='Record Type'
@@ -52,40 +49,28 @@ class DNSPodRecord(models.Model):
 
 class DNSPodRecordAdapter(Component):
     _name = 'dnspod.record.adapter'
-    _inherit = 'dns.abstract.adapter'
+    _inherit = 'dnspod.abstract.adapter'
     _apply_on = 'dnspod.record'
 
-    def _get_login_params(self, domain_id):
-        params = {
-            'format': 'json',
-            'domain_id': domain_id.external_id
-        }
-        if domain_id.backend_id.token_id and domain_id.backend_id.login_token:
-            login_token = '{},{}'.format(
-                domain_id.backend_id.token_id,
-                domain_id.backend_id.login_token
-            )
-            params.update(login_token=login_token)
+    def list(self, domain_id, external_id):
+        params = self._get_login_params(domain_id)
+        params.update(record_id=external_id)
+        data = self._send_request('/Record.Info', params)
+        if data and data['status']['code'] == '1':
+            return data['record']
         else:
-            params.update(login_email=domain_id.backend_id.login,
-                          login_password=domain_id.backend_id.password)
-        return params
+            raise ValidationError(data['status']['message'])
 
-    def _send_request(self, uri, params):
-        headers = {
-            "Content-type": "application/x-www-form-urlencoded",
-            "Accept": "text/json",
-            "User-Agent": "DNSPod-Odoo/0.01 (webmaster@my-odoo.com)"
-        }
-        api_path = self.backend_record.api_path
-        conn = httplib2.HTTPSConnectionWithTimeout(api_path)
-        conn.request('POST', uri, urlencode(params), headers)
-        response = conn.getresponse()
-        conn.close()
-        return response
+    def list_all(self, domain_id):
+        params = self._get_login_params(domain_id)
+        data = self._send_request('/Record.List', params)
+        if data and data['status']['code'] == '1':
+            return [r['id'] for r in data['records']]
+        else:
+            raise ValidationError(data['status']['message'])
 
-    def create(self, domain_id, external_id):
-        record = self.model.browse(external_id)
+    def create(self, record):
+        domain_id = record.domain_id
         params = self._get_login_params(domain_id)
         params.update({
             'sub_domain': record.name,
@@ -95,13 +80,11 @@ class DNSPodRecordAdapter(Component):
             'mx': record.mx_priority,
             'ttl': record.ttl
         })
-        response = self._send_request('/Record.Create', params)
-        data = response.read()
-        if response.status == 200:
-            res = json.loads(data.decode('utf-8'))
-            if res['status']['code'] == '1':
-                return res['record']
-        return {}
+        data = self._send_request('/Record.Create', params)
+        if data and data['status']['code'] == '1':
+            return data['record']
+        else:
+            raise ValidationError(data['status']['message'])
 
     def write(self, binding):
         domain_id = binding.domain_id
@@ -115,40 +98,18 @@ class DNSPodRecordAdapter(Component):
             'mx': binding.mx_priority,
             'ttl': binding.ttl
         })
-        response = self._send_request('/Record.Modify', params)
-        data = response.read()
-        if response.status == 200:
-            res = json.loads(data.decode('utf-8'))
-            if res['status']['code'] == '1':
-                return res['record']
-        return {}
+        data = self._send_request('/Record.Modify', params)
+        if not data or data['status']['code'] != '1':
+            raise ValidationError(data['status']['message'])
+        return True
 
-    def unlink(self, binding):
+    def delete(self, binding):
         domain_id = binding.domain_id
         params = self._get_login_params(domain_id)
         params.update({
             'record_id': binding.external_id,
         })
-        self._send_request('/Record.Remove', params)
+        data = self._send_request('/Record.Remove', params)
+        if not data or data['status']['code'] != '1':
+            raise ValidationError(data['status']['message'])
         return True
-
-    def search(self, domain_id):
-        params = self._get_login_params(domain_id)
-        response = self._send_request('/Record.List', params)
-        data = response.read()
-        if response.status == 200:
-            res = json.loads(data.decode('utf-8'))
-            if res['status']['code'] == '1':
-                return [r['id'] for r in res['records']]
-        return []
-
-    def send_request(self, domain_id, external_id):
-        params = self._get_login_params(domain_id)
-        params.update(record_id=external_id)
-        response = self._send_request('/Record.Info', params)
-        data = response.read()
-        if response.status == 200:
-            res = json.loads(data.decode('utf-8'))
-            if res['status']['code'] == '1':
-                return res['record']
-        return {}
